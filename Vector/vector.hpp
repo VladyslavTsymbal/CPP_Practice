@@ -23,6 +23,14 @@ class Vector
 	public:
 		Vector() = default;
 
+		iterator       begin() noexcept;
+		const_iterator begin() const noexcept;
+		const_iterator cbegin() const noexcept;
+
+		iterator       end() noexcept;
+		const_iterator end() const noexcept;
+		const_iterator cend() const noexcept;
+
 	private:
 		std::unique_ptr<T[]> m_data = nullptr;
 		iterator m_begin            = nullptr;
@@ -47,3 +55,45 @@ struct Vector<T, Allocator>::Iterator :
 	private:
 		pointer m_p;
 };
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::iterator
+Vector<T, Allocator>::begin() noexcept
+{
+	return m_begin;
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::const_iterator
+Vector<T, Allocator>::begin() const noexcept
+{
+	return m_begin;
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::const_iterator
+Vector<T, Allocator>::cbegin() const noexcept
+{
+	return begin();
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::iterator
+Vector<T, Allocator>::end() noexcept
+{
+	return m_end;
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::const_iterator
+Vector<T, Allocator>::end() const noexcept
+{
+	return m_end;
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::const_iterator
+Vector<T, Allocator>::cend() const noexcept
+{
+	return end();
+}
