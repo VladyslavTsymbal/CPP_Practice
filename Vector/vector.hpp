@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <exception>
 
 template <typename T, typename Allocator = std::allocator<T>>
 class Vector
@@ -34,6 +35,16 @@ class Vector
 		size_type size() const noexcept;
 		size_type capacity() const noexcept;
 
+		reference operator [](const size_type index) noexcept;
+		const_reference operator [](const size_type index) const noexcept;
+
+		void push_back(reference value);
+
+	private:
+		void _reallocate();
+		std::unique_ptr<T[]> _allocate(size_type n);
+		void _check_and_realloc();
+
 	private:
 		std::unique_ptr<T[]> m_data = nullptr;
 		iterator m_begin            = nullptr;
@@ -59,6 +70,40 @@ struct Vector<T, Allocator>::Iterator :
 	operator -(const Iterator other) const
 	{
 		return m_p - other.m_p;
+	}
+
+	typename Iterator::reference
+	operator *()
+	{
+		return *m_p;
+	}
+
+	Iterator operator ++(int)
+	{
+		Iterator ret = m_p;
+		++m_p;
+		return ret;
+	}
+
+	Iterator& operator ++()
+	{
+		++m_p;
+		return *this;
+	}
+
+	bool operator ==(const Iterator& other)
+	{
+		return m_p == other.m_p;
+	}
+
+	bool operator !=(const Iterator& other)
+	{
+		return m_p != other.m_p;
+	}
+
+	Iterator operator +(const typename Iterator::difference_type n)
+	{
+		return Iterator(m_p + n);
 	}
 
 	private:
@@ -119,4 +164,70 @@ typename Vector<T, Allocator>::size_type
 Vector<T, Allocator>::capacity() const noexcept
 {
 	return m_capacity - m_begin;
+}
+
+template <typename T, typename Allocator>
+void Vector<T, Allocator>::_reallocate()
+{
+	if (capacity() == 0)
+	{
+		m_data     = _allocate(4);
+		m_begin    = m_end = m_data.get();
+		m_capacity = m_begin + 4;
+
+		return;
+	}
+
+	const size_type old_capacity = capacity();
+	const size_type new_capacity = old_capacity * 2;
+	auto new_memory = _allocate(new_capacity);
+
+	if (new_memory == nullptr)
+		throw std::bad_alloc();
+
+	auto raw_pointer_new = new_memory.get();
+	auto raw_pointer_old = m_data.get();
+	for (auto i = 0; i < old_capacity; ++i)
+		raw_pointer_new[i] = std::move(raw_pointer_old[i]);
+
+	m_begin    = raw_pointer_new;
+	m_end      = raw_pointer_new + old_capacity;
+	m_capacity = raw_pointer_new + new_capacity;
+
+	m_data = std::move(new_memory);
+}
+
+template <typename T, typename Allocator>
+std::unique_ptr<T[]> Vector<T, Allocator>::_allocate(size_type n)
+{
+	Allocator allocator;
+	return std::unique_ptr<T[]>(allocator.allocate(n));
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::reference
+Vector<T, Allocator>::operator [](const size_type index) noexcept
+{
+	return m_data.get()[index];
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::const_reference
+Vector<T, Allocator>::operator [](const size_type index) const noexcept
+{
+	return m_data.get()[index];
+}
+
+template <typename T, typename Allocator>
+void Vector<T, Allocator>::_check_and_realloc()
+{
+	if (m_end == m_capacity)
+		_reallocate();
+}
+
+template <typename T, typename Allocator>
+void Vector<T, Allocator>::push_back(reference value)
+{
+	_check_and_realloc();
+	*m_end++ = value;
 }
