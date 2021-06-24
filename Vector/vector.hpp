@@ -7,9 +7,6 @@ template <typename T, typename Allocator = std::allocator<T>>
 class Vector
 {
 	public:
-		template <typename A>
-		struct Iterator;
-
 		using value_type      = T;
 		using allocator_type  = Allocator;
 		using size_type       = typename Allocator::size_type;
@@ -18,10 +15,9 @@ class Vector
 		using const_reference = typename Allocator::const_reference;
 		using pointer         = typename Allocator::pointer;
 		using const_pointer   = typename Allocator::const_pointer;
-		using iterator        = Iterator<value_type>;
-		using const_iterator  = Iterator<const value_type>;
+		using iterator        = value_type*;
+		using const_iterator  = const value_type*;
 
-	public:
 		Vector() = default;
 
 		iterator       begin() noexcept;
@@ -53,64 +49,6 @@ class Vector
 };
 
 template <typename T, typename Allocator>
-template <typename A>
-struct Vector<T, Allocator>::Iterator :
-	public std::iterator<std::random_access_iterator_tag, A>
-{
-	Iterator(pointer p) : m_p(p)
-	{
-	}
-
-	bool operator < (const Iterator other)
-	{
-		return m_p < other.m_p;
-	}
-
-	typename Iterator::difference_type
-	operator -(const Iterator other) const
-	{
-		return m_p - other.m_p;
-	}
-
-	typename Iterator::reference
-	operator *()
-	{
-		return *m_p;
-	}
-
-	Iterator operator ++(int)
-	{
-		Iterator ret = m_p;
-		++m_p;
-		return ret;
-	}
-
-	Iterator& operator ++()
-	{
-		++m_p;
-		return *this;
-	}
-
-	bool operator ==(const Iterator& other)
-	{
-		return m_p == other.m_p;
-	}
-
-	bool operator !=(const Iterator& other)
-	{
-		return m_p != other.m_p;
-	}
-
-	Iterator operator +(const typename Iterator::difference_type n)
-	{
-		return Iterator(m_p + n);
-	}
-
-	private:
-		pointer m_p;
-};
-
-template <typename T, typename Allocator>
 typename Vector<T, Allocator>::iterator
 Vector<T, Allocator>::begin() noexcept
 {
@@ -128,7 +66,7 @@ template <typename T, typename Allocator>
 typename Vector<T, Allocator>::const_iterator
 Vector<T, Allocator>::cbegin() const noexcept
 {
-	return begin();
+	return m_begin;
 }
 
 template <typename T, typename Allocator>
@@ -149,7 +87,7 @@ template <typename T, typename Allocator>
 typename Vector<T, Allocator>::const_iterator
 Vector<T, Allocator>::cend() const noexcept
 {
-	return end();
+	return m_end;
 }
 
 template <typename T, typename Allocator>
