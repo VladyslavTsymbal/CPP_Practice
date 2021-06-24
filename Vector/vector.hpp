@@ -33,8 +33,11 @@ class Vector
 
 		reference operator [](const size_type index) noexcept;
 		const_reference operator [](const size_type index) const noexcept;
+		reference at(const size_type index);
+		const_reference at(const size_type index) const;
 
 		void push_back(reference value);
+		bool empty() const noexcept;
 
 	private:
 		void _reallocate();
@@ -157,6 +160,22 @@ Vector<T, Allocator>::operator [](const size_type index) const noexcept
 }
 
 template <typename T, typename Allocator>
+typename Vector<T, Allocator>::reference
+Vector<T, Allocator>::at(const size_type index)
+{
+	if (index >= size()) throw std::out_of_range("Index is greater than vector's size.");
+	return m_data.get()[index];
+}
+
+template <typename T, typename Allocator>
+typename Vector<T, Allocator>::const_reference
+Vector<T, Allocator>::at(const size_type index) const
+{
+	if (index >= size()) throw std::out_of_range("Index is greater than vector's size.");
+	return m_data.get()[index];
+}
+
+template <typename T, typename Allocator>
 void Vector<T, Allocator>::_check_and_realloc()
 {
 	if (m_end == m_capacity)
@@ -168,4 +187,10 @@ void Vector<T, Allocator>::push_back(reference value)
 {
 	_check_and_realloc();
 	*m_end++ = value;
+}
+
+template <typename T, typename Allocator>
+bool Vector<T, Allocator>::empty() const noexcept
+{
+	return size() == 0;
 }
